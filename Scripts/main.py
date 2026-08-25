@@ -8,11 +8,12 @@ from config import (
 )
 
 import pandas as pd
+import matplotlib.pyplot as plt
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
-df = read_and_prepare_data(INPUT_DIR / "creditcard.csv")
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 def preprocess_data(df):
     X = df.drop(columns=[TARGET])
@@ -48,4 +49,33 @@ def fit_regression(xtrain, ytrain, xtest):
     y_pred = model.predict(xtest)
     y_probability = model.predict_proba(xtest)[:, 1]
 
-    return y_pred, y_probability
+    return model, y_pred, y_probability
+
+
+def evaluate(ytest, ypred):
+    confusion = confusion_matrix(ytest, ypred)
+    return confusion
+
+
+def main():
+    df = read_and_prepare_data(INPUT_DIR / "creditcard.csv")
+    X_train_scaled, X_test_scaled, y_train, y_test = preprocess_data(df)
+
+    model, y_pred, y_probability = fit_regression(
+        X_train_scaled, y_train, X_test_scaled
+    )
+
+    print(f"y_pred: {y_pred}")
+    print("================")
+    print(f"y_prob: {y_probability}")
+
+    confusion = evaluate(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=model.classes_)
+
+    disp.plot()
+    plt.show()
+
+
+
+if __name__ == "__main__":
+    main()
